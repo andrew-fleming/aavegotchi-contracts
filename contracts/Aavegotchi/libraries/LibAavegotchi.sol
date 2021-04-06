@@ -38,6 +38,7 @@ struct AavegotchiInfo {
     uint256 minimumStake;
     uint256 kinship; //The kinship value of this Aavegotchi. Default is 50.
     uint256 lastInteracted;
+    uint40 claimTime;
     uint256 experience; //How much XP this Aavegotchi has accrued. Begins at 0.
     uint256 toNextLevel;
     uint256 usedSkillPoints; //number of skill points used
@@ -157,6 +158,7 @@ library LibAavegotchi {
             aavegotchiInfo_.minimumStake = s.aavegotchis[_tokenId].minimumStake;
             aavegotchiInfo_.kinship = kinship(_tokenId);
             aavegotchiInfo_.lastInteracted = s.aavegotchis[_tokenId].lastInteracted;
+            aavegotchiInfo_.claimTime = s.aavegotchis[_tokenId].claimTime;
             aavegotchiInfo_.experience = s.aavegotchis[_tokenId].experience;
             aavegotchiInfo_.toNextLevel = xpUntilNextLevel(s.aavegotchis[_tokenId].experience);
             aavegotchiInfo_.level = aavegotchiLevel(s.aavegotchis[_tokenId].experience);
