@@ -11,6 +11,11 @@ uint256 constant NUMERIC_TRAITS_NUM = 6;
 uint256 constant TRAIT_BONUSES_NUM = 5;
 uint256 constant PORTAL_AAVEGOTCHIS_NUM = 10;
 
+address constant HEADPETTER = address(1); // For linked-list structure in AppStorage. 
+// I'm posting this hesitantly; as, I need to do more research into the diamond structure and upgrades. 
+// Otherwise, this necessitates another solution toward setting the linked-list HEAD to address(1).
+
+
 //  switch (traitType) {
 //         case 0:
 //             return energy(value);
@@ -228,6 +233,13 @@ struct AppStorage {
     mapping(address => mapping(uint256 => mapping(address => uint256))) erc721TokenToListingId;
     // body wearableId => sleevesId
     mapping(uint256 => uint256) sleeves;
+
+    // ##### MY CODE BELOW #####
+
+    // tokenId => mapping(userAddress => nextAddress)
+    mapping(uint256 => mapping(address => address)) nextPetter;  // linked-list structure
+    // tokenId => numPetters
+    mapping(uint256 => uint256) numPetters;  // An example of the linked-list's ease of iteration
 }
 
 library LibAppStorage {

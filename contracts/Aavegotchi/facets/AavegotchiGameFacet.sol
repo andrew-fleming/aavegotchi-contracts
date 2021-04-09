@@ -187,4 +187,59 @@ contract AavegotchiGameFacet is Modifiers {
         s.aavegotchis[_tokenId].usedSkillPoints += totalUsed;
         emit SpendSkillpoints(_tokenId, _values);
     }
+
+    // ##### MY CODE BELOW #####
+
+    /**
+    @notice This function utilizes the linked-list mapping declared in LibAppStorage. This data
+            structure allows for flexibility and does not run into bloating issues with dynamic arrays. 
+            Further, simply using a nested mapping that results in a boolean value ( mapping(uint256 => mapping(address => bool) ) 
+            adds unnecessary complexity regarding fetching Aavegotchi petters--iteration isn't possible as-is with 
+            mappings. By implementing a linked-list structure, devs can more easily iterate and fetch gotchi petters.
+
+    @notice The "s.numPetters++" at the end of the function is solely included to showcase the ease of integration
+            (not part of the code test).
+
+    @dev Regarding address(1), it'd be preferable to make this a constant variable.
+    */
+
+    function addPetter(uint256 _tokenId, address _petter) external {
+        address owner = s.aavegotchis[_tokenId].owner;
+        address sender = LibMeta.msgSender();
+        require(
+            !isPetter(_tokenId, _petter) && 
+            sender == owner,
+            "AavegotchiGameFacet: Not owner of token or address is already a petter"
+        );
+        s.nextPetter[_tokenId][_petter] = s.nextPetter[_tokenId][address(1)];
+        s.nextPetter[_tokenId][_petter] = _petter;
+        s.numPetters[_tokenId]++;
+    }
+
+    /**
+    @notice The pet function follows the same logic as interact a few functions above; except, this 
+    includes the petter logic. Perhaps, consolidate in order to follow the DRY methodology?
+     */
+    function pet(uint256[] calldata _tokenIds) external {
+        address sender = LibMeta.msgSender();
+        for (uint256 i; i < _tokenIds.length; i++) {
+            uint256 tokenId = _tokenIds[i];
+            address owner = s.aavegotchis[tokenId].owner;
+            require(
+                sender == owner || 
+                s.operators[owner][sender] || 
+                s.approved[tokenId] == sender || 
+                isPetter(tokenId, sender),
+                "AavegotchiGameFacet: Not owner of token, approved, or added as petter"
+            );
+            LibAavegotchi.interact(tokenId);
+        }
+    }
+    /**
+    @notice This function is a helper function for the addPetter function. The visibility can be
+            changed to internal if not used in frontend.
+    */
+    function isPetter(uint256 _gotchi, address _petter) public view returns(bool) {
+        return s.nextPetter[_gotchi][_petter] != address(0);
+    }
 }
