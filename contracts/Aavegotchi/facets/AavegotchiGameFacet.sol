@@ -218,7 +218,7 @@ contract AavegotchiGameFacet is Modifiers {
 
     /**
     @notice The pet function follows the same logic as interact a few functions above; except, this 
-    includes the petter logic. Perhaps, consolidate in order to follow the DRY methodology?
+    includes the petter logic.
      */
     function pet(uint256[] calldata _tokenIds) external {
         address sender = LibMeta.msgSender();
