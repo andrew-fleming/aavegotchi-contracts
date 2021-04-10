@@ -211,7 +211,7 @@ contract AavegotchiGameFacet is Modifiers {
             sender == owner,
             "AavegotchiGameFacet: Not owner of token or address is already a petter"
         );
-        s.nextPetter[_tokenId][_petter] = s.nextPetter[_tokenId][address(1)];
+        s.nextPetter[_tokenId][address(1)] = s.nextPetter[_tokenId][_petter];
         s.nextPetter[_tokenId][_petter] = _petter;
         s.numPetters[_tokenId]++;
     }
