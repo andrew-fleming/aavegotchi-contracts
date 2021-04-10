@@ -214,6 +214,7 @@ contract AavegotchiGameFacet is Modifiers {
         s.nextPetter[_tokenId][address(1)] = s.nextPetter[_tokenId][_petter];
         s.nextPetter[_tokenId][_petter] = _petter;
         s.numPetters[_tokenId]++;
+
     }
 
     /**
@@ -239,7 +240,7 @@ contract AavegotchiGameFacet is Modifiers {
     @notice This function is a helper function for the addPetter function. The visibility can be
             changed to internal if not used in frontend.
     */
-    function isPetter(uint256 _gotchi, address _petter) public view returns(bool) {
-        return s.nextPetter[_gotchi][_petter] != address(0);
+    function isPetter(uint256 _tokenId, address _petter) public view returns(bool) {
+        return s.nextPetter[_tokenId][_petter] != address(0);
     }
 }
