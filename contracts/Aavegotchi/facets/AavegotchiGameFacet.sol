@@ -191,6 +191,14 @@ contract AavegotchiGameFacet is Modifiers {
     // ##### MY CODE BELOW #####
 
     /**
+        In order to test:
+        1. Call the setHead() function with the tokenId your address owns.
+        2. Call addPetter() function with the same tokenId and the address of the petter.
+        3. The rest of the functions should include the tokenId you included in the setHead() function or else 
+            it will revert.
+     */
+
+    /**
     @notice This function utilizes the linked-list mapping declared in LibAppStorage. This data
             structure allows for flexibility and does not run into bloating issues with dynamic arrays. 
             Further, simply using a nested mapping that results in a boolean value ( mapping(uint256 => mapping(address => bool) ) 
@@ -207,12 +215,13 @@ contract AavegotchiGameFacet is Modifiers {
         address owner = s.aavegotchis[_tokenId].owner;
         address sender = LibMeta.msgSender();
         require(
+            s.headIsSet[_tokenId] &&
             !isPetter(_tokenId, _petter) && 
             sender == owner,
-            "AavegotchiGameFacet: Not owner of token or address is already a petter"
+            "AavegotchiGameFacet: List is not set, not owner of token, or address is already a petter"
         );
-        s.nextPetter[_tokenId][address(1)] = s.nextPetter[_tokenId][_petter];
-        s.nextPetter[_tokenId][_petter] = _petter;
+        s.nextPetter[_tokenId][_petter] = s.nextPetter[_tokenId][address(1)];
+        s.nextPetter[_tokenId][address(1)] = _petter;
         s.numPetters[_tokenId]++;
 
     }
@@ -236,11 +245,90 @@ contract AavegotchiGameFacet is Modifiers {
             LibAavegotchi.interact(tokenId);
         }
     }
+    
+    // Must be called prior to adding petters on specified _tokenId.
     /**
-    @notice This function is a helper function for the addPetter function. The visibility can be
-            changed to internal if not used in frontend.
-    */
+    @notice Necessary function for setting the 'HEAD' of the linked list for a particular _tokenId. This
+            removes the need to set the 'HEAD' address (address(1)) in the constructor. The nested mapping
+            makes setting the 'HEAD' in the constructor troublesome; as, it would need to set the 'HEAD' on
+            every _tokenId that will ever exist. This approach is cleaner.
+
+    @dev Needs to reset after every _tokenId transfer.
+     */
+    function setHead(uint256 _tokenId) public {
+        address owner = s.aavegotchis[_tokenId].owner;
+        address sender = LibMeta.msgSender();
+        require(
+            s.headIsSet[_tokenId] == false &&
+            sender == owner,
+            'AavegotchiGameFacet: List is already set or not owner of token'
+        );
+        s.nextPetter[_tokenId][address(1)] = address(1);
+        s.headIsSet[_tokenId] = true;
+    }
+
+    
+    /**
+    @notice Removes the target address (_petter) and replaces the address to which it points with the
+            previous address in the linked list.
+     */
+    function removePetter(uint256 _tokenId, address _petter) external {
+        address owner = s.aavegotchis[_tokenId].owner;
+        address sender = LibMeta.msgSender();
+        require(
+            isPetter(_tokenId, _petter) &&
+            sender == owner,
+            "AavegotchiGameFacet: Not owner of token or address is not a petter"
+        );
+        address prevPetter = _getPrevPetter(_tokenId, _petter);
+        s.nextPetter[_tokenId][prevPetter] = s.nextPetter[_tokenId][_petter];
+        s.nextPetter[_tokenId][_petter] = address(0);
+        s.numPetters[_tokenId]--;
+    }
+    
+    
+    /**
+    @notice Serves as a helper function for removePetter() above. This function finds and returns the 
+            address pointing at the target address (_petter).
+     */
+    function _getPrevPetter(uint256 _tokenId, address _petter) internal view returns(address) {
+        address currentAddress = address(1);
+        for(uint256 i; s.nextPetter[_tokenId][currentAddress] != address(1); i++) {
+            if (s.nextPetter[_tokenId][currentAddress] == _petter) {
+                return currentAddress;
+            }
+            currentAddress = s.nextPetter[_tokenId][currentAddress];
+        }
+        return address(0);
+    }
+    
+    /**
+    @notice Returns an array with petters in the reverse order in which they were added. 
+     */
+    function getPetters(uint256 _tokenId) external view returns (address[] memory) {
+        address[] memory petters = new address[](s.numPetters[_tokenId]);
+        address currentAddress = s.nextPetter[_tokenId][address(1)];
+        for(uint256 i; currentAddress != address(1); i++) {
+            petters[i] = currentAddress;
+            currentAddress = s.nextPetter[_tokenId][currentAddress];
+        }
+        return petters;
+    }
+
+    /**
+    @notice Function that returns a boolean. Returns 'true' if the address (_petter) is included in
+            the linked list.
+     */
     function isPetter(uint256 _tokenId, address _petter) public view returns(bool) {
         return s.nextPetter[_tokenId][_petter] != address(0);
     }
+
+    /**
+    @notice Getter function that returns the amount of petters specified _tokenId has. 
+     */
+    function getNumPetters(uint256 _tokenId) public view returns(uint256) {
+        return s.numPetters[_tokenId];
+    }
+
+
 }

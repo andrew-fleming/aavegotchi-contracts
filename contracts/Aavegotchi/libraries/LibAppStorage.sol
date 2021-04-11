@@ -11,9 +11,8 @@ uint256 constant NUMERIC_TRAITS_NUM = 6;
 uint256 constant TRAIT_BONUSES_NUM = 5;
 uint256 constant PORTAL_AAVEGOTCHIS_NUM = 10;
 
-address constant HEADPETTER = address(1); // For linked-list structure in AppStorage. 
-// I'm posting this hesitantly; as, I need to do more research into the diamond structure and upgrades. 
-// Otherwise, this necessitates another solution toward setting the linked-list HEAD to address(1).
+//address constant HEADPETTER = address(1); // For linked-list structure in AppStorage. 
+// I'm posting this hesitantly; as, I need to do more research into the diamond structure and upgrades.
 
 
 //  switch (traitType) {
@@ -240,6 +239,8 @@ struct AppStorage {
     mapping(uint256 => mapping(address => address)) nextPetter;  // linked-list structure
     // tokenId => numPetters
     mapping(uint256 => uint256) numPetters;  // An example of the linked-list's ease of iteration
+    // tokenId => bool
+    mapping(uint256 => bool) headIsSet;  // Head of linked list
 }
 
 library LibAppStorage {
